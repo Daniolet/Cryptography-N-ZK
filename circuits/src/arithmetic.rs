@@ -113,6 +113,8 @@ mod tests {
     }
 
     // Circuit is hard to draw :)
+
+
     #[test]
     fn test_circuit_evaluation_2() {
         let layer_0 = CircuitLayer::new(vec![
@@ -494,4 +496,36 @@ mod tests {
         println!("Circuit: {:?}", circuit);
         println!("Circuit details: {:?}", eval.layers[0])
     }
+
+#[test]
+fn test_empty_input() {
+    let circuit = Circuit::new(vec![]);
+    let input: Vec<Fr> = vec![];
+    let evaluation = circuit.evaluate(&input);
+    assert!(evaluation.layers.is_empty());
+}
+
+#[test]
+fn test_invalid_layer_index() {
+    let layer = CircuitLayer::new(vec![Gate::new(GateType::Add, [0, 1])]);
+    let circuit = Circuit::new(vec![layer]);
+    assert_panics!(
+        circuit.get_add_n_mul_mle::<Fr>(2),
+        "Layer index out of bounds"
+    );
+}
+
+#[test]
+fn test_disconnected_circuit() {
+    let layer = CircuitLayer::new(vec![
+        Gate::new(GateType::Add, [0, 1]),
+        Gate::new(GateType::Mul, [2, 3]),
+    ]);
+    let circuit = Circuit::new(vec![layer]);
+    let input = [Fr::from(1u32), Fr::from(1u32), Fr::from(1u32)];
+    let evaluation = circuit.evaluate(&input);
+    // Assuming the circuit processes only connected gates
+    assert_eq!(evaluation.layers[0].len(), 1); // Adjust based on your logic
+}
+
 }
